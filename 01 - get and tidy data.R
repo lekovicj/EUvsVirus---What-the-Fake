@@ -1,6 +1,6 @@
 library(tidyverse)
 
-storyTopic <- "garlic"
+storyTopic <- "bleach"
 
 source("00 - theme and styling.R")
 
@@ -21,20 +21,10 @@ factCheckTopic %>%
 # get google trends for topic ---------------------------------------------
 library(trendyy)
 
-gTrendsRelative <- trendy(search_terms = c(storyTopic, "coronavirus", paste(storyTopic, "coronavirus"), "covid", paste(storyTopic, "covid")), 
-                          from = "2020-01-01", 
-                          to = strftime(Sys.Date(), "%Y-%m-%d"))
+# gTrendsRelative <- trendy(search_terms = c(storyTopic, "coronavirus", paste(storyTopic, "coronavirus"), "covid", paste(storyTopic, "covid")), 
+#                           from = "2020-01-01", 
+#                           to = strftime(Sys.Date(), "%Y-%m-%d"))
 
-
-get_interest(gTrendsRelative) %>% 
-    ggplot(aes(x = date, y = as.numeric(hits), col = keyword, group = keyword))+
-    geom_line()
-
-get_interest_city(gTrendsRelative)
-
-get_interest_country(gTrendsRelative)
-
-get_related_queries(gTrendsRelative)
 
 gTrendsSpecific <- trendy(search_terms = c( paste(storyTopic, "coronavirus"),  paste(storyTopic, "covid")), 
                           from = "2020-01-01", 
@@ -231,6 +221,7 @@ ggplot(data = gdeltTimeline,
     
     scale_x_date(date_breaks = "2 weeks", date_labels = "%d %b", position = "bottom")+
     scale_y_continuous(limits = c(0, 5))+
+    scale_size(range = c(3, 10))+
     labs(title = "Fake news about", 
          subtitle = paste("Covid-19 and...", storyTopic), 
          caption = "\nSOURCES\nPoynter | The GDELT Project | Google Trends")+
@@ -245,3 +236,48 @@ ggplot(data = gdeltTimeline,
 ggsave(filename = paste0("plots/timeline ",storyTopic,".png"), 
        type = "cairo", dpi = "retina", 
        width = 30, height = 17, units = "cm", scale = 0.9)
+
+# so next up - which countries is this biggest in -------------------------
+
+topCountries <- get_interest_country(gTrendsSpecific) %>% 
+    drop_na(hits) %>% 
+    arrange(-hits) %>% 
+    group_by(location) %>%
+    filter(row_number() == 1) %>% 
+    ungroup()
+
+factCheckTopic %>% 
+    distinct(countries) %>% 
+    separate_rows(countries, sep = ",") %>% 
+    mutate(countries = str_squish(countries)) %>% 
+    group_by(countries) %>% 
+    summarise(count = n()) %>% 
+    ungroup() %>% 
+    arrange(-count) %>% 
+    rename(location = countries) %>% 
+    right_join(topCountries) %>% 
+    filter(hits > 50) %>% 
+    mutate(location = reorder(location, hits, FUN = max)) %>% 
+    print() %>% 
+    ggplot(aes(x = hits, y = location, col = is.na(count)))+
+    geom_segment(aes(xend = 0, yend = location), 
+                 size = 5, lineend = "round")+
+    scale_colour_manual(values = c(wtfPalette$green, wtfPalette$yellow), limits = c(TRUE, FALSE), 
+                        labels = c("Not fact-checked\nin country", "Fact-checked\nin country"))+
+    scale_x_continuous(labels = c("Low\nvolume"," ", "High\nvolume"), breaks = c(0, 50, 100), position = "top")+
+    labs(title = "Countries by interest", 
+         subtitle = paste("Searches for", storyTopic, "and\ncovid or coronavirus"), 
+         caption = "\nSOURCES\nPoynter | Google Trends", 
+         col = "")+
+    theme(#aspect.ratio = 1/1.5,
+        legend.position = "bottom",
+        axis.text.x = element_text(colour = foregroundCol), 
+        axis.text.y = element_text(colour = foregroundCol),
+        plot.title = element_text(face = "plain", size = 23, hjust = 0.1, colour = wtfPalette$yellow), 
+        plot.subtitle = element_text(face = "bold", size = 25, hjust = 0.1, colour = foregroundCol), 
+        plot.caption = element_text(face = "plain", size = 10, hjust = 0.5, colour = foregroundCol))
+
+
+ggsave(filename = paste0("plots/searchInterest ",storyTopic,".png"), 
+       type = "cairo", dpi = "retina", 
+       width = 17, height = 17, units = "cm", scale = 0.9)
