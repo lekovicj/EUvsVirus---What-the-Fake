@@ -36,11 +36,16 @@ details <- detailsRAW %>%
            originatedFrom = str_remove(originatedFrom, "This false claim originated from: ")) %>% 
     mutate_all(.funs = str_squish) %>% 
     mutate(originatedFrom = str_to_lower(originatedFrom)) %>% 
-    mutate(facebook = str_detect(originatedFrom, "facebook") | str_detect(originatedFrom, "fb"), 
-           twitter = str_detect(originatedFrom, "twitter") | str_detect(originatedFrom, "@"), 
-           whatsapp = str_detect(originatedFrom, "whatsapp"),
+    mutate(facebook = str_detect(originatedFrom, "facebook") | str_detect(originatedFrom, "fb") | 
+               str_detect(originatedFrom, "facebok") | str_detect(originatedFrom, "faacebook"), 
+           twitter = str_detect(originatedFrom, "twitter") | str_detect(originatedFrom, "@") | str_detect(originatedFrom, "tweet") | str_detect(originatedFrom, "twtter"), 
+           whatsapp = str_detect(originatedFrom, "whatsapp") | str_detect(originatedFrom, "whatapp"),
            youtube = str_detect(originatedFrom, "youtube"),
-           social = str_detect(originatedFrom, "social")) %>% 
+           instagram = str_detect(originatedFrom, "instagram"),
+           social = str_detect(originatedFrom, "social"), 
+           messaging = str_detect(originatedFrom, "text") | str_detect(originatedFrom, "message"), 
+           website = str_detect(originatedFrom, "website") | str_detect(originatedFrom, "http") | str_detect(originatedFrom, "www")| str_detect(originatedFrom, "blog"),
+           other = !facebook & !twitter & !whatsapp & !youtube & !social & !instagram & !messaging & !website) %>% 
     left_join(detailsRAW %>% 
                   select(link, fullArticleUrl) %>% 
                   drop_na())
@@ -53,7 +58,8 @@ factCheck <- pages %>%
 
 factCheck <- factCheck %>% 
     mutate(week = lubridate::floor_date(date, unit = "week", week_start = 1)) %>% 
-    mutate(flag = str_to_lower(flag))
+    mutate(flag = str_to_lower(flag)) %>% 
+    distinct(link, .keep_all = T)
 
 rm(details)
 rm(detailsRAW) 

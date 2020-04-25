@@ -1,6 +1,6 @@
 library(tidyverse)
 
-storyTopic <- "bleach"
+storyTopic <- "china"
 
 source("00 - theme and styling.R")
 
@@ -41,9 +41,9 @@ get_interest(gTrendsSpecific) %>%
 
 #get_interest_city(gTrendsSpecific)
 
-get_interest_country(gTrendsSpecific)
+#get_interest_country(gTrendsSpecific)
 
-get_related_queries(gTrendsSpecific)
+#get_related_queries(gTrendsSpecific)
 
 # finally, look at how this story spreads in the news agenda --------------
 
@@ -147,8 +147,8 @@ gdeltTimeline <- gdeltTimeline %>%
                   filter(row_number() == 1) %>% 
                   select(date, peakTitle = title, peakChecked = checkedBy)) %>% 
     mutate(labelLimit = factCheckIndex+1)
-    
-    
+
+
 
 
 ggplot(data = gdeltTimeline, 
@@ -193,18 +193,6 @@ ggplot(data = gdeltTimeline,
               check_overlap = T, 
               hjust = 0, vjust = 0.5, 
               col = wtfPalette$light)+
-    
-    #label first fakenews
-    # ggforce::geom_mark_circle(aes(y = factCheckIndex+0.5,
-    #                               filter = !is.na(firstTitle),
-    #                               label = paste0(firstChecked,"\n",strftime(date, format = "%d %b")), 
-    #                               description = firstTitle),
-    #                           col = wtfPalette$lightGrey, 
-    #                           position = position_dodge(width = 5),
-    #                           label.fontsize = c(15,8),
-    #                           label.fill = wtfPalette$yellow,
-    #                           label.colour = wtfPalette$light,
-    #                           con.colour = wtfPalette$light )+
     
     #label peak day
     ggforce::geom_mark_circle(aes(y = factCheckIndex+0.5,
@@ -256,7 +244,7 @@ factCheckTopic %>%
     arrange(-count) %>% 
     rename(location = countries) %>% 
     right_join(topCountries) %>% 
-    filter(hits > 50) %>% 
+    filter(hits > 10) %>% 
     mutate(location = reorder(location, hits, FUN = max)) %>% 
     print() %>% 
     ggplot(aes(x = hits, y = location, col = is.na(count)))+
@@ -281,3 +269,79 @@ factCheckTopic %>%
 ggsave(filename = paste0("plots/searchInterest ",storyTopic,".png"), 
        type = "cairo", dpi = "retina", 
        width = 17, height = 17, units = "cm", scale = 0.9)
+
+
+
+# where do sources spread -------------------------------------------------
+
+
+factCheck %>% 
+    select(title, date, facebook, twitter, whatsapp, youtube, social, instagram, messaging, website, other) %>% 
+    gather(key = "platform", value = "onPlatform", -title, -date) %>% 
+    filter(onPlatform) %>% 
+    group_by(platform) %>% 
+    summarise(countAll = n()) %>% 
+    ungroup() %>% 
+    mutate(pctAll = countAll/ sum(countAll)) %>% 
+    left_join(factCheckTopic %>% 
+                  select(title, date, facebook, twitter, whatsapp, youtube, social, instagram, messaging, website, other) %>% 
+                  gather(key = "platform", value = "onPlatform", -title, -date) %>% 
+                  filter(onPlatform) %>% 
+                  group_by(platform) %>% 
+                  summarise(count = n()) %>% 
+                  ungroup() %>% 
+                  mutate(pct = count/ sum(count))) %>% 
+    mutate(platform = reorder(platform, pct), 
+           higher = if_else(pct >= pctAll, 1, -1)) %>% 
+    print() %>% 
+    ggplot(aes(y = platform))+
+    geom_segment(aes(yend = platform, 
+                     x = 0, xend = 1), 
+                 size = 4, lineend = "round", 
+                 col = wtfPalette$darkOffset)+
+
+    geom_point(aes(x = pct), 
+               col = wtfPalette$yellow, 
+               size = 5)+
+    geom_point(aes(x = pct), 
+               col = wtfPalette$dark, 
+               size = 1, shape = 16)+
+    geom_segment(aes(yend = platform, 
+                     x = pctAll, xend = pct), 
+                 size = 1, lineend = "round", 
+                 col = wtfPalette$dark)+
+    geom_point(aes(x = pctAll), 
+               col = wtfPalette$light, 
+               size = 3, shape = 1)+
+    geom_text(aes(x = pct+0.05*higher, label = scales::percent(pct, 1)), 
+              col = wtfPalette$yellow, 
+              fontface = "bold")+
+    geom_text(aes(x = pctAll-0.04*higher, label = scales::percent(pctAll, 1)), 
+              col = wtfPalette$light, 
+              size = 3)+
+    scale_x_continuous(labels = scales::percent, expand = expansion(c(0.05,0.1)))+
+    labs(title = "Spread by platform", 
+         subtitle = paste("Proportion of", storyTopic, "\nstories fact-checked"), 
+         caption = "\nSOURCE\nPoynter", 
+         col = "")+
+    theme(legend.position = "bottom",
+          axis.text.x = element_text(colour = foregroundCol), 
+          axis.text.y = element_text(colour = foregroundCol),
+          plot.title = element_text(face = "plain", size = 23, hjust = 0.1, colour = wtfPalette$yellow), 
+          plot.subtitle = element_text(face = "bold", size = 25, hjust = 0.1, colour = foregroundCol), 
+          plot.caption = element_text(face = "plain", size = 10, hjust = 0.5, colour = foregroundCol))
+
+ggsave(filename = paste0("plots/platforms ",storyTopic,".png"), 
+       type = "cairo", dpi = "retina", 
+       width = 17, height = 17, units = "cm", scale = 1)
+
+# related topics ----------------------------------------------------------
+
+top_related_searches <- get_related_queries(gTrendsSpecific) %>% 
+    filter(related_queries == "top")
+
+rising_related_searches <- get_related_queries(gTrendsSpecific) %>% 
+    filter(related_queries == "rising")
+
+
+
