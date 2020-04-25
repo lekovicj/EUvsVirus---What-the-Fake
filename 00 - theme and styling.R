@@ -8,7 +8,7 @@ wtfPalette <- list( "dark" = "#262626",
                     "green" = "#00BDBF",
                     "light" = "#FDFEFE", 
                     "lightGrey" = "#f7f7f7",
-                    "darkOffset" = adjustcolor(col = wtfPalette$dark, offset = c(0.05, 0.05, 0.05, 0)))
+                    "darkOffset" = adjustcolor(col = "#262626", offset = c(0.05, 0.05, 0.05, 0)))
 
 wtfFont <- fonttable() %>% 
     filter(str_detect(FullName, "Roboto")) %>% 

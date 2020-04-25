@@ -31,7 +31,7 @@ searchGDELT <- function(query = "garlic"){
     
     
     download.file(paste0("https://api.gdeltproject.org/api/v2/doc/doc?format=csv&timespan=FULL", query, "&mode=timelinevol&timezoom=yes"), 
-                  destfile = "data/dailyIntensity.csv")
+                  destfile = "data/dailyIntensity.csv", quiet = T)
     
     timeline <- read_csv("data/dailyIntensity.csv") 
     

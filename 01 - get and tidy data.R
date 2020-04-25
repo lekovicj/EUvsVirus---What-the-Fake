@@ -1,6 +1,10 @@
 library(tidyverse)
 
-storyTopic <- "china"
+
+if(!exists("storyTopic")){
+    
+    storyTopic <- "swan"
+}
 
 source("00 - theme and styling.R")
 
@@ -244,7 +248,7 @@ factCheckTopic %>%
     arrange(-count) %>% 
     rename(location = countries) %>% 
     right_join(topCountries) %>% 
-    filter(hits > 10) %>% 
+    top_n(n = 15, wt = hits) %>% 
     mutate(location = reorder(location, hits, FUN = max)) %>% 
     print() %>% 
     ggplot(aes(x = hits, y = location, col = is.na(count)))+
@@ -299,7 +303,7 @@ factCheck %>%
                      x = 0, xend = 1), 
                  size = 4, lineend = "round", 
                  col = wtfPalette$darkOffset)+
-
+    
     geom_point(aes(x = pct), 
                col = wtfPalette$yellow, 
                size = 5)+
