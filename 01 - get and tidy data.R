@@ -244,7 +244,7 @@ factCheckTopic %>%
     arrange(-count) %>% 
     rename(location = countries) %>% 
     right_join(topCountries) %>% 
-    top_n(n = 12, wt = hits) %>%  
+    filter(hits > 10) %>% 
     mutate(location = reorder(location, hits, FUN = max)) %>% 
     print() %>% 
     ggplot(aes(x = hits, y = location, col = is.na(count)))+
