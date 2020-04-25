@@ -33,13 +33,20 @@ searchGDELT <- function(query = "garlic"){
     download.file(paste0("https://api.gdeltproject.org/api/v2/doc/doc?format=csv&timespan=FULL", query, "&mode=timelinevol&timezoom=yes"), 
                   destfile = "data/dailyIntensity.csv")
     
+    timeline <- read_csv("data/dailyIntensity.csv") 
     
-    for(i in 1:length(lookupDates)) {
+    lookupDates <- timeline %>% 
+        filter(Value > 0.001) %>% 
+        filter(Value == max(Value) | Date == min(Date)) %>% 
+        select(Date) 
+    
+    
+    for(i in 1:length(lookupDates$Date)) {
         
-        print(lookupDates[i])
+        print(lookupDates$Date[i])
         
-        dates <- paste0("startdatetime=", format(lookupDates[i], "%Y%m%d"),
-                        "000000&enddatetime=", format(lookupDates[i], "%Y%m%d"), "235959")
+        dates <- paste0("startdatetime=", format(lookupDates$Date[i], "%Y%m%d"),
+                        "000000&enddatetime=", format(lookupDates$Date[i], "%Y%m%d"), "235959")
         
         # download.file(url = paste0(base, csv,dates,query, timeSeries), 
         #               destfile = paste0("data/intensityFiles/intensity",format(lookupDates[i], "%Y%m%d"),".csv"), 
@@ -47,8 +54,10 @@ searchGDELT <- function(query = "garlic"){
         # 
         # Sys.sleep(0.333333)
         
+        file.remove(dir(path = "data/articleFiles/", full.names = T))
+        
         download.file(url = paste0(base, csv,dates,query, articles), 
-                      destfile = paste0("data/articleFiles/articles",format(lookupDates[i], "%Y%m%d"),".csv"), 
+                      destfile = paste0("data/articleFiles/articles",format(lookupDates$Date[i], "%Y%m%d"),".csv"), 
                       method = "curl", quiet = T)
         
         Sys.sleep(0.333333)

@@ -6,7 +6,8 @@ wtfPalette <- list( "dark" = "#262626",
                     "red" = "#FA6132",
                     "yellow"= "#FEA508", 
                     "green" = "#00BDBF",
-                    "light" = "#FDFEFE")
+                    "light" = "#FDFEFE", 
+                    "lightGrey" = "#f7f7f7")
 
 wtfFont <- fonttable() %>% 
     filter(str_detect(FullName, "Roboto")) %>% 
@@ -14,9 +15,9 @@ wtfFont <- fonttable() %>%
     distinct(FamilyName, .keep_all = T)
 
 
-backgroundCol <- wtfPalette$light
+backgroundCol <- wtfPalette$dark
 
-foregroundCol <- wtfPalette$dark
+foregroundCol <- wtfPalette$light
 
 #create theme for Creative Equals
 wtfTheme <- theme_minimal(base_family = wtfFont$FamilyName[2])+
@@ -24,6 +25,7 @@ wtfTheme <- theme_minimal(base_family = wtfFont$FamilyName[2])+
           text = element_text(colour = foregroundCol), 
           rect = element_rect(fill = backgroundCol, colour = NA), 
           title = element_text(colour = foregroundCol),
+          plot.background = element_rect(fill = backgroundCol, colour = backgroundCol),
           panel.grid = element_blank(), 
           axis.ticks = element_blank(), 
           axis.title = element_blank(),
@@ -34,7 +36,7 @@ wtfTheme <- theme_minimal(base_family = wtfFont$FamilyName[2])+
           legend.position = "none",
           plot.margin = margin(3, 3, 3,3, unit = "pt"))
 
-update_geom_defaults("text", list(colour = foregroundCol, family = wtfFont$FamilyName[2]))
+update_geom_defaults("text", list(colour = foregroundCol, family = wtfFont$FamilyName[2], lineheight = 0.8))
 update_geom_defaults("line", list(colour = foregroundCol))
 update_geom_defaults("area", list(fill = foregroundCol))
 update_geom_defaults("col", list(fill = foregroundCol)) # is there a way to update all geom fills?
