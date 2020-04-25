@@ -1,6 +1,6 @@
 library(tidyverse)
 
-storyTopic <- "mask"
+storyTopic <- "garlic"
 
 source("00 - theme and styling.R")
 
@@ -21,8 +21,8 @@ factCheckTopic %>%
 library(trendyy)
 
 gTrendsRelative <- trendy(search_terms = c(storyTopic, "coronavirus", paste(storyTopic, "coronavirus"), "covid", paste(storyTopic, "covid")), 
-                from = "2020-01-01", 
-                to = strftime(Sys.Date(), "%Y-%m-%d"))
+                          from = "2020-01-01", 
+                          to = strftime(Sys.Date(), "%Y-%m-%d"))
 
 
 get_interest(gTrendsRelative) %>% 
@@ -36,8 +36,8 @@ get_interest_country(gTrendsRelative)
 get_related_queries(gTrendsRelative)
 
 gTrendsSpecific <- trendy(search_terms = c( paste(storyTopic, "coronavirus"),  paste(storyTopic, "covid")), 
-                  from = "2020-01-01", 
-                  to = strftime(Sys.Date(), "%Y-%m-%d"))
+                          from = "2020-01-01", 
+                          to = strftime(Sys.Date(), "%Y-%m-%d"))
 
 get_interest(gTrendsSpecific) %>% 
     mutate(date = lubridate::date(date)) %>% 
@@ -48,7 +48,7 @@ get_interest(gTrendsSpecific) %>%
                col = wtfPalette$red)+
     scale_colour_gradient(low = wtfPalette$light, high = wtfPalette$green, limits = c(-10, 100))
 
-get_interest_city(gTrendsSpecific)
+#get_interest_city(gTrendsSpecific)
 
 get_interest_country(gTrendsSpecific)
 
@@ -113,19 +113,78 @@ storyTimeline %>%
 # fine tuning that timeline prototype -------------------------------------
 
 
-storyTimeline <- get_interest(gTrendsSpecific) %>% 
+gTrendsTimeline <- get_interest(gTrendsSpecific) %>% 
     mutate(date = lubridate::date(date)) %>% 
     filter(keyword == paste(storyTopic, "coronavirus")) %>% 
     select(date, value = hits) %>% 
-    mutate(value = value/100,
-           source = "gTrends") %>% 
-    bind_rows(GDELTIntensity %>% 
-                  select(date, value) %>% 
-                  filter(date >= as.Date("2020-01-01")) %>% 
-                  mutate(value = scales::rescale(x = value, to = c(0,1), from = c(0, max(value))), 
-                         source = "GDELT")) %>% 
-    bind_rows(factCheckTopic %>% 
-                  select(date) %>% 
-                  mutate(value = 100, 
-                         source = "FactCheck") %>% 
-                  distinct())
+    mutate(valueScaled = 2+value/100,
+           source = "gTrends") 
+
+gdeltTimeline <- GDELTIntensity %>% 
+    select(date, value) %>% 
+    filter(date >= as.Date("2020-01-01")) %>% 
+    mutate(valueScaled = 3+scales::rescale(x = value, to = c(0,1), from = c(0, max(value))), 
+           source = "GDELT")
+
+factCheckTimeline <- factCheckTopic %>% 
+    group_by(date) %>% 
+    summarise(value = n()) %>% 
+    ungroup() %>% 
+    mutate(valueScaled = 4+scales::rescale(x = value, to = c(0,1), from = c(0, max(value))))
+
+
+#timelinePlot <- 
+
+ggplot(data = gdeltTimeline, 
+       aes(x = date))+
+    
+    # google trends
+    geom_ribbon(data = gTrendsTimeline,
+                aes(ymin = 2, ymax = valueScaled), fill = wtfPalette$green)+
+    geom_text(aes(x = min(date), y = 2), 
+              label = "Google searches", 
+              check_overlap = T, 
+              hjust = 0, vjust = 1, 
+              col = wtfPalette$green)+
+    
+    #GDELT data
+    geom_ribbon(data = gdeltTimeline,
+                aes(ymin = 3, ymax = valueScaled), fill = wtfPalette$red)+
+    geom_text(aes(x = min(date), y = 3), 
+              label = "News coverage", 
+              check_overlap = T, 
+              hjust = 0, vjust = 1, 
+              col = wtfPalette$red)+
+    #factCheck data
+    geom_rect(aes(xmin = min(date)-3, xmax = max(date), 
+                  ymin = 4, ymax = 5), fill = wtfPalette$yellow)+
+    geom_vline(data = factCheckTimeline, 
+               aes(xintercept = date, alpha = valueScaled),
+               col = wtfPalette$light)+
+    geom_point(data = factCheckTimeline, 
+               aes(y = 4.6, size = valueScaled), 
+               col = wtfPalette$light, shape = 1)+
+    geom_text(aes(x = min(date), y = 4.6), 
+              label = "Fact checks", 
+              check_overlap = T, 
+              hjust = 0, vjust = 0.5, 
+              col = wtfPalette$light)+
+    
+    #annotation
+    geom_text(data = factCheckTopic %>% 
+                  arrange(date) %>% 
+                  filter(row_number() == 1),
+              aes(y = 1, label = str_replace(checkedBy, "by: ", "by:\n")),
+              hjust = 0, col = wtfPalette$yellow)+
+    
+    #formatting
+    scale_x_date(date_breaks = "2 weeks", date_labels = "%d %b")+
+    scale_y_continuous(limits = c(0, 5))+
+    labs(title = paste("Fake news about", storyTopic), 
+         subtitle = "")+
+    theme(aspect.ratio = 1/2,
+          axis.ticks.x = element_line(colour = foregroundCol),
+          axis.text.y = element_blank(), 
+          plot.title = element_text(face = "bold"))
+
+timelinePlot    
