@@ -14,9 +14,9 @@ wtfFont <- fonttable() %>%
     distinct(FamilyName, .keep_all = T)
 
 
-backgroundCol <- wtfPalette$dark
+backgroundCol <- wtfPalette$light
 
-foregroundCol <- wtfPalette$light
+foregroundCol <- wtfPalette$dark
 
 #create theme for Creative Equals
 wtfTheme <- theme_minimal(base_family = wtfFont$FamilyName[2])+
