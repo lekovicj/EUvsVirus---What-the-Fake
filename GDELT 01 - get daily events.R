@@ -54,13 +54,13 @@ searchGDELT <- function(query = "garlic"){
         # 
         # Sys.sleep(0.333333)
         
-        file.remove(dir(path = "data/articleFiles/", full.names = T))
-        
-        download.file(url = paste0(base, csv,dates,query, articles), 
-                      destfile = paste0("data/articleFiles/articles",format(lookupDates$Date[i], "%Y%m%d"),".csv"), 
-                      method = "curl", quiet = T)
-        
-        Sys.sleep(0.333333)
+        # file.remove(dir(path = "data/articleFiles/", full.names = T))
+        # 
+        # download.file(url = paste0(base, csv,dates,query, articles), 
+        #               destfile = paste0("data/articleFiles/articles",format(lookupDates$Date[i], "%Y%m%d"),".csv"), 
+        #               method = "curl", quiet = T)
+        # 
+        # Sys.sleep(0.333333)
         
     }
     

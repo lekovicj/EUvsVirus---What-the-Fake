@@ -38,13 +38,15 @@ shinyUI(fluidPage(theme = "bootstrap.css",
     
     h2("How has the topic changed over time?"),
     
-    p("By looking at how many times the story has been fact-checked, how much volume it's seeing in news coverage."),
+    p("By looking at how many times the story has been fact-checked, how much volume it's seeing in news coverage and how much interest it gets in google searches."),
     
     plotOutput("timeline", height = "600px", width = "100%"), 
     
+    br(),
+    
     p("Here's a recent story on that topic:"),
     
-    htmlOutput("mostRecentStory", width = "50%"),
+    htmlOutput("mostRecentStory", width = "50%", margin = "auto"),
     
     br(),
     
