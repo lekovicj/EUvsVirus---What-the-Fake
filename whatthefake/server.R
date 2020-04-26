@@ -191,6 +191,8 @@ shinyServer(function(input, output, session) {
         
         GDELTIntensity <- keyData()$GDELTIntensity
         
+        factCheckTopic <- keyData()$factCheckTopic
+        
         
         factCheck %>% 
             select(title, date, facebook, twitter, whatsapp, youtube, social, instagram, messaging, website, other) %>% 
@@ -254,7 +256,9 @@ shinyServer(function(input, output, session) {
         
         storyTopic <- keyData()$storyTopic
         
-        GDELTIntensity <- keyData()$GDELTIntensity
+        gTrendsSpecific <- keyData()$gTrendsSpecific
+        
+        factCheckTopic <- keyData()$factCheckTopic
         
         topCountries <- get_interest_country(gTrendsSpecific) %>% 
             drop_na(hits) %>% 
@@ -300,7 +304,7 @@ shinyServer(function(input, output, session) {
         
         storyTopic <- keyData()$storyTopic
         
-        GDELTIntensity <- keyData()$GDELTIntensity
+        gTrendsSpecific <- keyData()$gTrendsSpecific
         
         
         top_related_searches <- get_related_queries(gTrendsSpecific) %>% 
@@ -326,5 +330,27 @@ shinyServer(function(input, output, session) {
                   plot.subtitle = element_text(face = "bold", size = 25, hjust = 0.1, colour = foregroundCol), 
                   plot.caption = element_text(face = "plain", size = 10, hjust = 0.5, colour = foregroundCol))
     })
+    
+    output$mostRecentStory <- renderText({
+        
+        factCheckTopic <- keyData()$factCheckTopic
+        
+        mostRecent <- factCheckTopic %>% 
+            arrange(desc(date)) %>% 
+            filter(row_number() == 1)
+        
+        title <- h3(mostRecent$title)
+        
+        checkedBy <- h4(mostRecent$checkedBy)
+        date <- h4(strftime(mostRecent$date, "%d %b %y"))
+        flag <- h4(str_to_upper(mostRecent$flag), class = "strong")
+        
+        explanation <- p(mostRecent$explanation, class = "blockquote")
+        
+        paste(title, checkedBy, flag, date, explanation)
+        
+        
+        
+    }, sep = "\n")
 
 })

@@ -1,7 +1,7 @@
 library(tidyverse)
 
 
-storyTopic <- "infected"
+storyTopic <- "pets"
 # 
 # if(!exists("storyTopic")){
 #     

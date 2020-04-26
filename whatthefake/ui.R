@@ -15,7 +15,8 @@ shinyUI(fluidPage(theme = "bootstrap.css",
     # Application title
     #titlePanel("What the Fake!?"),
     
-    img(src= "What the Fake!_small.png"),
+    img(src = "What the Fake!_small.png", 
+        class = "img-fluid"),
 
     # Sidebar with a slider input for number of bins
     sidebarLayout(
@@ -39,15 +40,19 @@ shinyUI(fluidPage(theme = "bootstrap.css",
     
     p("By looking at how many times the story has been fact-checked, how much volume it's seeing in news coverage."),
     
-    plotOutput("timeline"), 
+    plotOutput("timeline", height = "600px", width = "100%"), 
+    
+    p("Here's a recent story on that topic:"),
+    
+    htmlOutput("mostRecentStory", width = "50%"),
     
     br(),
     
-    h2("Where do these fake news come from?"),
+    h2("Where do fake facts circulate?"),
     
     p("These are the platforms fact-checkers noticed articles related to this story."),
     
-    plotOutput("platforms"),
+    plotOutput("platforms", height = "600px", width = "70%"),
     
     br(),
     
@@ -55,7 +60,7 @@ shinyUI(fluidPage(theme = "bootstrap.css",
     
     p("These are the countries where people search for the topic, but might not have been fact-checked."),
     
-    plotOutput("countries"),
+    plotOutput("countries", height = "600px", width = "70%"),
     
     br(),
     
@@ -63,6 +68,22 @@ shinyUI(fluidPage(theme = "bootstrap.css",
     
     p("Other search terms that are likely to crop up."),
     
-    plotOutput("related"),
+    plotOutput("related", height = "600px", width = "70%"),
+    
+    br(),
+    
+    a("Built for #EUvsVirus", href = "https://eunitedvsvirus.devpost.com/", class = "h3"),
+    
+    br(height = "300px"),
+    
+    h2("Data from"),
+    
+    a("The Poynter CoronaVirusFacts/DatosCoronaVirus Alliance Database", href = "https://www.poynter.org/ifcn-covid-19-misinformation", class = "h3"),
+    br(),
+    a("The GDELT Project", href = "https://www.gdeltproject.org/", class = "h3"),
+    br(),
+    a("Google trends", href = "https://trends.google.com/trends/", class = "h3")
+    
+    
     
 ))
