@@ -1,10 +1,12 @@
 library(tidyverse)
 
 
-if(!exists("storyTopic")){
-    
-    storyTopic <- "swan"
-}
+storyTopic <- "infected"
+# 
+# if(!exists("storyTopic")){
+#     
+#     storyTopic <- "vaccine"
+# }
 
 source("00 - theme and styling.R")
 
@@ -30,9 +32,13 @@ library(trendyy)
 #                           to = strftime(Sys.Date(), "%Y-%m-%d"))
 
 
+### THERE'S SOMETHING that doesn't let us use the last few days, seems like a gtrends feature, potentially run last few days separately
 gTrendsSpecific <- trendy(search_terms = c( paste(storyTopic, "coronavirus"),  paste(storyTopic, "covid")), 
                           from = "2020-01-01", 
                           to = strftime(Sys.Date(), "%Y-%m-%d"))
+
+
+#recentTrend <- gtrendsR::gtrends(keyword = paste(storyTopic, "coronavirus"), time = "now 7-d", onlyInterest = T)
 
 get_interest(gTrendsSpecific) %>% 
     mutate(date = lubridate::date(date)) %>% 
@@ -295,6 +301,7 @@ factCheck %>%
                   summarise(count = n()) %>% 
                   ungroup() %>% 
                   mutate(pct = count/ sum(count))) %>% 
+    mutate(pct = replace_na(pct, 0)) %>% 
     mutate(platform = reorder(platform, pct), 
            higher = if_else(pct >= pctAll, 1, -1)) %>% 
     print() %>% 
@@ -341,11 +348,34 @@ ggsave(filename = paste0("plots/platforms ",storyTopic,".png"),
 
 # related topics ----------------------------------------------------------
 
-top_related_searches <- get_related_queries(gTrendsSpecific) %>% 
-    filter(related_queries == "top")
+
 
 rising_related_searches <- get_related_queries(gTrendsSpecific) %>% 
     filter(related_queries == "rising")
 
+top_related_searches <- get_related_queries(gTrendsSpecific) %>% 
+    filter(related_queries == "top")
 
-
+top_related_searches %>%
+    mutate(subject = as.numeric(subject)) %>% 
+    top_n(n = 15, wt = subject) %>% 
+    mutate(value =  reorder(value, subject)) %>% 
+    ggplot(aes(y = value, x = subject))+ 
+    geom_segment(aes(xend = 0, yend = value), 
+                 size = 5, lineend = "round", 
+                 col = wtfPalette$green)+
+    scale_x_continuous(labels = c("Low\nvolume"," ", "High\nvolume"), breaks = c(0, 50, 100), position = "top")+
+    labs(title = "Top related searches", 
+         subtitle = paste0("People who look for ", storyTopic, ",\nalso look for..."), 
+         caption = "\nSOURCE\nGoogle Trends", 
+         col = "")+
+    theme(legend.position = "bottom",
+        axis.text.x = element_text(colour = foregroundCol), 
+        axis.text.y = element_text(colour = foregroundCol),
+        plot.title = element_text(face = "plain", size = 23, hjust = 0.1, colour = wtfPalette$yellow), 
+        plot.subtitle = element_text(face = "bold", size = 25, hjust = 0.1, colour = foregroundCol), 
+        plot.caption = element_text(face = "plain", size = 10, hjust = 0.5, colour = foregroundCol))
+    
+ggsave(filename = paste0("plots/relatedSearches ",storyTopic,".png"), 
+       type = "cairo", dpi = "retina", 
+       width = 17, height = 17, units = "cm", scale = 1)
