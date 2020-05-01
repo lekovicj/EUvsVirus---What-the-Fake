@@ -10,21 +10,22 @@
 library(shiny)
 library(trendyy)
 library(tidyverse)
+library(ggfittext)
 
-setwd("C:\\Users\\so run so vain\\Projects\\EUvsVirus - What the Fake")
+#setwd("C:\\Users\\so run so vain\\Projects\\EUvsVirus - What the Fake")
 
-factCheck <- readRDS("C:/Users/so run so vain/Projects/EUvsVirus - What the Fake/data/factCheck.rds")
+factCheck <- readRDS("data/factCheck.rds")
 
 source("00 - theme and styling Shiny.R")
 source(file = "GDELT 01 - get daily events.R")
 
-# Define server logic required to draw a histogram
+
 shinyServer(function(input, output, session) {
 
     
     keyData <- eventReactive(input$shinyQ, {
         
-        storyTopic <- input$shinyQ
+        storyTopic <- req(input$shinyQ)
         
         factCheckTopic <- factCheck %>% 
             filter(str_detect(str_to_lower(paste(title, explanation)), pattern = str_to_lower(storyTopic))) %>% 
@@ -32,7 +33,7 @@ shinyServer(function(input, output, session) {
         
         
         
-        gTrendsSpecific <- trendy(search_terms = c( paste(storyTopic, "coronavirus"),  paste(storyTopic, "covid")), 
+        gTrendsSpecific <- trendy(search_terms = c( paste(storyTopic, "coronavirus")), 
                                   from = "2020-01-01", 
                                   to = strftime(Sys.Date(), "%Y-%m-%d"))
         
@@ -109,8 +110,6 @@ shinyServer(function(input, output, session) {
             mutate(labelLimit = factCheckIndex+1)
         
         
-        
-        
         ggplot(data = gdeltTimeline, 
                aes(x = date))+
             
@@ -123,6 +122,7 @@ shinyServer(function(input, output, session) {
                       label = "Google\nsearches", 
                       fontface = "bold",
                       check_overlap = T, 
+                      size = 5,
                       hjust = 0, vjust = 0.5, 
                       col = wtfPalette$light)+
             
@@ -135,6 +135,7 @@ shinyServer(function(input, output, session) {
                       label = "News\ncoverage",
                       fontface = "bold",
                       check_overlap = T, 
+                      size = 5,
                       hjust = 0, vjust = 0.5, 
                       col = wtfPalette$light)+
             #factCheck data
@@ -151,20 +152,55 @@ shinyServer(function(input, output, session) {
                       label = "Fact\nchecks", 
                       fontface = "bold",
                       check_overlap = T, 
+                      size = 5,
                       hjust = 0, vjust = 0.5, 
                       col = wtfPalette$light)+
             
             #label peak day
-            ggforce::geom_mark_circle(aes(y = factCheckIndex+0.5,
-                                          filter = !is.na(peakTitle),
-                                          label = paste0(peakChecked,"\n",strftime(date, format = "%d %b")), 
-                                          description = peakTitle),
-                                      col = wtfPalette$lightGrey,
-                                      position = position_dodge(width = 5),
-                                      label.fontsize = c(15,8),
-                                      label.fill = wtfPalette$yellow,
-                                      label.colour = wtfPalette$light,
-                                      con.colour = wtfPalette$light )+
+            geom_rect(data = . %>% filter(!is.na(peakTitle)), 
+                      aes(xmin = date - 30, xmax = date+30, 
+                          ymin = 3.1, ymax = 5), 
+                      fill = wtfPalette$yellow)+
+            ggfittext::geom_fit_text(data = . %>% filter(!is.na(peakTitle)), 
+                                     aes(xmin = date - 30, xmax = date+30, 
+                                         ymin = 4.2, ymax = 4.5, 
+                                         label = strftime(date, format = "%d %b")), 
+                                     col = wtfPalette$light,
+                                     grow = T, 
+                                     padding.x = unit(3, "mm"),
+                                     place = "left", 
+                                     fontface = "bold")+
+            ggfittext::geom_fit_text(data = . %>% filter(!is.na(peakTitle)), 
+                                     aes(xmin = date - 30, xmax = date+30, 
+                                         ymin = 4.5, ymax = 5, 
+                                         label = peakChecked), 
+                                     col = wtfPalette$light,
+                                     grow = T, 
+                                     padding.x = unit(3, "mm"),
+                                     padding.y = unit(3, "mm"),
+                                     fontface = "bold",
+                                     place = "left")+
+            ggfittext::geom_fit_text(data = . %>% filter(!is.na(peakTitle)), 
+                                     aes(xmin = date - 30, xmax = date+30, 
+                                         ymin = 3.1, ymax = 4.2, 
+                                         label = peakTitle), 
+                                     col = wtfPalette$light,
+                                     #grow = T, 
+                                     padding.x = unit(3, "mm"),
+                                     padding.y = unit(3, "mm"),
+                                     fontface = "plain",
+                                     place = "left",
+                                     reflow = T)+
+            geom_segment(data = . %>% filter(!is.na(peakTitle)), 
+                         aes(x = date - 30, xend = date+30, 
+                             y = 3.1, yend = 3.1), 
+                         col = wtfPalette$light, 
+                         size = 1)+
+            geom_segment(data = . %>% filter(!is.na(peakTitle)), 
+                         aes(x = date, xend = date, 
+                             y = 2.5, yend = 3.1), 
+                         col = wtfPalette$light, 
+                         size = 1)+
             
             
             scale_x_date(date_breaks = "2 weeks", date_labels = "%d %b", position = "bottom")+
@@ -213,7 +249,7 @@ shinyServer(function(input, output, session) {
             mutate(pct = replace_na(pct, 0)) %>% 
             mutate(platform = reorder(platform, pct), 
                    higher = if_else(pct >= pctAll, 1, -1)) %>% 
-            print() %>% 
+            #print() %>% 
             ggplot(aes(y = platform))+
             geom_segment(aes(yend = platform, 
                              x = 0, xend = 1), 
@@ -279,7 +315,7 @@ shinyServer(function(input, output, session) {
             right_join(topCountries) %>% 
             top_n(n = 15, wt = hits) %>% 
             mutate(location = reorder(location, hits, FUN = max)) %>% 
-            print() %>% 
+            #print() %>% 
             ggplot(aes(x = hits, y = location, col = is.na(count)))+
             geom_segment(aes(xend = 0, yend = location), 
                          size = 5, lineend = "round")+

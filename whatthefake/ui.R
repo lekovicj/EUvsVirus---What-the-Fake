@@ -18,6 +18,11 @@ shinyUI(fluidPage(theme = "bootstrap.css",
     img(src = "What the Fake!_small.png", 
         class = "img-fluid"),
 
+    p("Hello, greetings, welcome!"),
+    p("This is a prototype, so please be patient and aware that things will break."),
+    p("Other than that: have fun!"),
+    a("If you find this project fun, interesting, or useful, feel free to drop me a tweet :)", href = "https://twitter.com/lekovicj"),
+    
     # Sidebar with a slider input for number of bins
     sidebarLayout(
         sidebarPanel(
@@ -75,6 +80,8 @@ shinyUI(fluidPage(theme = "bootstrap.css",
     br(),
     
     a("Built for #EUvsVirus", href = "https://eunitedvsvirus.devpost.com/", class = "h3"),
+    
+    
     
     br(height = "300px"),
     

@@ -1,0 +1,12 @@
+name: whatthefake
+title: whatthefake
+username:
+account: lekovicj
+server: shinyapps.io
+hostUrl: https://api.shinyapps.io/v1
+appId: 2202418
+bundleId: 3090485
+url: https://lekovicj.shinyapps.io/whatthefake/
+when: 1588345449.14526
+asMultiple: FALSE
+asStatic: FALSE

@@ -68,3 +68,9 @@ rm(pagesRAW)
 
 write_rds(factCheck, path = "data/factCheck.rds")
 write_csv(factCheck, path = "data/factCheck.csv")
+
+
+# copy to shiny 
+
+file.copy(from = "data/factCheck.rds", to = "whatthefake/data/factCheck.rds", 
+          overwrite = T)

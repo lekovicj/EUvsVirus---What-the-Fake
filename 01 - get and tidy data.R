@@ -159,8 +159,6 @@ gdeltTimeline <- gdeltTimeline %>%
     mutate(labelLimit = factCheckIndex+1)
 
 
-
-
 ggplot(data = gdeltTimeline, 
        aes(x = date))+
     
@@ -185,6 +183,7 @@ ggplot(data = gdeltTimeline,
               label = "News\ncoverage",
               fontface = "bold",
               check_overlap = T, 
+              size = 5,
               hjust = 0, vjust = 0.5, 
               col = wtfPalette$light)+
     #factCheck data
@@ -205,16 +204,48 @@ ggplot(data = gdeltTimeline,
               col = wtfPalette$light)+
     
     #label peak day
-    ggforce::geom_mark_circle(aes(y = factCheckIndex+0.5,
-                                  filter = !is.na(peakTitle),
-                                  label = paste0(peakChecked,"\n",strftime(date, format = "%d %b")), 
-                                  description = peakTitle),
-                              col = wtfPalette$lightGrey,
-                              position = position_dodge(width = 5),
-                              label.fontsize = c(15,8),
-                              label.fill = wtfPalette$yellow,
-                              label.colour = wtfPalette$light,
-                              con.colour = wtfPalette$light )+
+    geom_rect(data = . %>% filter(!is.na(peakTitle)), 
+              aes(xmin = date - 30, xmax = date+30, 
+                  ymin = 3.1, ymax = 5), 
+              fill = wtfPalette$yellow)+
+    ggfittext::geom_fit_text(data = . %>% filter(!is.na(peakTitle)), 
+                             aes(xmin = date - 30, xmax = date+30, 
+                                 ymin = 4.2, ymax = 4.5, 
+                                 label = strftime(date, format = "%d %b")), 
+                             col = wtfPalette$light,
+                             grow = T, 
+                             place = "left", 
+                             fontface = "bold",
+                             family = wtfFont$FamilyName[2])+
+    ggfittext::geom_fit_text(data = . %>% filter(!is.na(peakTitle)), 
+                             aes(xmin = date - 30, xmax = date+30, 
+                                 ymin = 4.5, ymax = 5, 
+                                 label = peakChecked), 
+                             col = wtfPalette$light,
+                             grow = T, 
+                             fontface = "bold",
+                             place = "left",
+                             family = wtfFont$FamilyName[2])+
+    ggfittext::geom_fit_text(data = . %>% filter(!is.na(peakTitle)), 
+                             aes(xmin = date - 30, xmax = date+30, 
+                                 ymin = 3.1, ymax = 4.2, 
+                                 label = peakTitle), 
+                             col = wtfPalette$light,
+                             #grow = T, 
+                             fontface = "bold",
+                             place = "left",
+                             reflow = T,
+                             family = wtfFont$FamilyName[3])+
+    geom_segment(data = . %>% filter(!is.na(peakTitle)), 
+              aes(x = date - 30, xend = date+30, 
+                  y = 3.1, yend = 3.1), 
+              col = wtfPalette$light, 
+              size = 1)+
+    geom_segment(data = . %>% filter(!is.na(peakTitle)), 
+                 aes(x = date, xend = date, 
+                     y = 2.5, yend = 3.1), 
+                 col = wtfPalette$light, 
+                 size = 1)+
     
     
     scale_x_date(date_breaks = "2 weeks", date_labels = "%d %b", position = "bottom")+
